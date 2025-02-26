@@ -33,11 +33,17 @@ app.get('/number/min', (req, res) => {
 });
 
 app.get('/number/max', (req, res) => {
-    const num1 = parseFloat(req.query.num1);
-    const num2 = parseFloat(req.query.num2);
 
-    const result = getMaxNumber(num1, num2);
-    res.status(result.status).json(result.data);
+    const { numbers } = req.query;
+    
+    if (!numbers) {
+        return res.status(400).json({
+            error: "please provide comma seperated numbers for find the max number"
+        });
+    }
+
+    const result = getMaxNumber(numbers);
+    return res.status(result.status).json(result.data);
 
 });
 
