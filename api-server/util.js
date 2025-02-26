@@ -78,17 +78,42 @@ function getSortedArray(numbers, type) {
     const lowerCaseType = type.toLowerCase();
 
     if (lowerCaseType === 'asc') {
+
+        var done = false;
+        while (!done) {
+            done = true;
+            for (var i = 1; i < convertedNumberArray.length; i += 1) {
+                if (convertedNumberArray[i - 1] > convertedNumberArray[i]) {
+                    done = false;
+                    var tmp = convertedNumberArray[i - 1];
+                    convertedNumberArray[i - 1] = convertedNumberArray[i];
+                    convertedNumberArray[i] = tmp;
+                }
+            }
+        }
         return {
             status: 200,
-            data: convertedNumberArray.sort((x, y) => x - y)
+            data: convertedNumberArray
 
         }
     }
 
     if (lowerCaseType === 'dsc') {
+        var done = false;
+        while (!done) {
+            done = true;
+            for (var i = 1; i < convertedNumberArray.length; i += 1) {
+                if (convertedNumberArray[i - 1] < convertedNumberArray[i]) {
+                    done = false;
+                    var tmp = convertedNumberArray[i - 1];
+                    convertedNumberArray[i - 1] = convertedNumberArray[i];
+                    convertedNumberArray[i] = tmp;
+                }
+            }
+        }
         return {
             status: 200,
-            data: convertedNumberArray.sort((x, y) => y - x)
+            data: convertedNumberArray
 
         }
     }
