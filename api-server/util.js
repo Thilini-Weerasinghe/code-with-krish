@@ -18,24 +18,25 @@ function getMinNumber(num1, num2) {
 
 };
 
-function getMaxNumber(num1, num2) {
-    // num1 = Number(num1);
-    // num2 = Number(num2);
-    // console.log('num1:', num1, 'num2:', num2);
-    // if (!/^\d+(\.\d+)?$/.test(num1) || !/^\d+(\.\d+)?$/.test(num2))
-    if (isNaN(num1) || isNaN(num2)) {
+function getMaxNumber(numbers) {
+
+    const convertedNumberArray = numbers.split(',').map(num => parseFloat(num));
+
+
+    if (convertedNumberArray.some(isNaN)) {
         return {
             status: 400,
             data: {
-                error: "both parameter shouldbe numbers"
+                error: "All the numbers should be valid numbers"
             }
         }
 
     }
+
     return {
         status: 200,
-        data: { max: Math.max(num1, num2) },
-    }
+        data: { max: Math.max(...convertedNumberArray) },
+    };
 
 }
 
