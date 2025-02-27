@@ -18,9 +18,9 @@ export class OrdersController {
         return await this.orderService.fetch(id);
     }
 
-    @Get('/')
-    async fetchAll(@Param('id') id : number){
-        return await this.orderService.fetchAll(id);
+    @Get()
+    async fetchAll(){
+        return await this.orderService.fetchAll();
     }
 
     @Patch('/:id/status')

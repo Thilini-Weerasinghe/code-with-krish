@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Customer } from './entity/customer.entity';
@@ -34,9 +34,13 @@ export class CustomersService {
 
 
    async fetch(id: number) {
-    return await this.custRepository.findOne({
+    const customer =  await this.custRepository.findOne({
         where : {id:id},
     });
+
+    if(!customer){
+        throw new NotFoundException(`Customer with ID ${id} not found`);
+    }
         //throw new Error('Method not implemented.');
     }
 

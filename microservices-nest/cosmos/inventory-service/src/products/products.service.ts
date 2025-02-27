@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entity/product.entity';
@@ -32,9 +32,15 @@ export class ProductsService {
 
 
    async fetch(id: number) {
-    return await this.productRepository.findOne({
+    const product =  await this.productRepository.findOne({
         where : {id:id},
     });
+
+    if(!product){
+        throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    return product;
         //throw new Error('Method not implemented.');
     }
 

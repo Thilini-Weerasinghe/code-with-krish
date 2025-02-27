@@ -46,14 +46,20 @@ export class OrdersService {
      }
 
      async fetch(id: any) {
-        return await this.orderRepository.findOne({
+        const order =  await this.orderRepository.findOne({
             where : {id},
             relations: ['items'],
         });
+
+        if(!order){
+            throw new NotFoundException(`Order with ID ${id} not found`);
+        }
+
+        return order;
         //throw new Error('Method not implemented.');
     }
 
-    async fetchAll(id: number) {
+    async fetchAll() {
         return await this.orderRepository.find({relations:['items']});
        // throw new Error('Method not implemented.');
     }
