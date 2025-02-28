@@ -1,7 +1,7 @@
 function getMinNumber(num1, num2) {
     // num1 = Number(num1);
     // num2 = Number(num2);
-    // console.log('num1:', num1, 'num2:', num2);
+     console.log('num1:', num1, 'num2:', num2);
     if (isNaN(num1) || isNaN(num2)) {
         return {
             status: 400,
