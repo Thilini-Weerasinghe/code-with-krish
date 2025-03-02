@@ -5,6 +5,8 @@ import { Or, Repository } from 'typeorm';
 import { OrderItem } from './entity/order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, UpdateOrderStatus } from './dto/update-order.dto';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
@@ -14,16 +16,43 @@ export class OrdersService {
         private readonly orderRepository:Repository<Order>,
         @InjectRepository(OrderItem) 
         private readonly orderItemRepository:Repository<OrderItem>,
+        private readonly httpService: HttpService
     ){}
 
 
      async create(createOrderDto: CreateOrderDto) : Promise<Order>{
         const {customerId, items} = createOrderDto;
 
+        const customerUrl =`http://localhost:3002/customers/${customerId}`;
+        
+
+        try{
+            const cust_response = await firstValueFrom(
+                this.httpService.get(customerUrl)
+            ); 
+
+            console.log(cust_response.data);
+        }catch(error){
+            throw new NotFoundException("couldn't find a valid customer for given id");
+        }
+
         const order = this.orderRepository.create({
             customerId,
             status: 'PENDING',
         });
+
+        for (const item of items){
+                try{
+                    const validProductUrl= `http://localhost:3001/products/${item.productId}/validate?quantity=${item.quantity}`;
+                    const product_valid_response = await firstValueFrom(
+                        this.httpService.get(validProductUrl)
+                    );
+                    console.log(product_valid_response.data);
+                }
+                catch(error){
+                    throw new NotFoundException(`product id: ${item.productId} is out of stock`);
+                }
+        }
         const savedOrder = await this.orderRepository.save(order);
 
         const orderItems = items.map((item) => 

@@ -3,9 +3,10 @@ import { OrdersModule } from './orders/orders.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './orders/entity/order.entity';
 import { OrderItem } from './orders/entity/order-item.entity';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [OrdersModule,TypeOrmModule.forRoot({
+  imports: [OrdersModule,HttpModule,TypeOrmModule.forRoot({
     type:'mysql',
     host:process.env.HOSTNAME || 'localhost',
     port:3306,
