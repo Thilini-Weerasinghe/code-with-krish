@@ -7,11 +7,11 @@ import { Product } from "./entity/product.entity";
 
 @Injectable()
 export class ProductsService {
- 
+
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-  ) {}
+  ) { }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
     const product = this.productRepository.create(createProductDto);
@@ -41,8 +41,8 @@ export class ProductsService {
   async updateProductQuantity(id: number, quantity: number) {
     try {
       const product = await this.productRepository.findOne({ where: { id } });
-      if(!product){
-        throw new error (`we couldn't find a prodcut related to this id:${id}`);
+      if (!product) {
+        throw new error(`we couldn't find a prodcut related to this id:${id}`);
       }
       product.quantity = product.quantity - quantity;
       await this.productRepository.save(product);

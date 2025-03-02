@@ -10,7 +10,7 @@ export class ProductsController {
   @Post()
   async createProduct(
     @Body() createProductDto: CreateProductDto,
-  ): Promise<Product> {
+  ) {
     return this.productsService.createProduct(createProductDto);
   }
 
