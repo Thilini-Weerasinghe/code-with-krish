@@ -10,29 +10,31 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
-   
+
     constructor(
-        @InjectRepository(Order) 
-        private readonly orderRepository:Repository<Order>,
-        @InjectRepository(OrderItem) 
-        private readonly orderItemRepository:Repository<OrderItem>,
+        @InjectRepository(Order)
+        private readonly orderRepository: Repository<Order>,
+        @InjectRepository(OrderItem)
+        private readonly orderItemRepository: Repository<OrderItem>,
         private readonly httpService: HttpService
-    ){}
+    ) { }
 
 
-     async create(createOrderDto: CreateOrderDto) : Promise<Order>{
-        const {customerId, items} = createOrderDto;
+    async create(createOrderDto: CreateOrderDto) {
+        const { customerId, items } = createOrderDto;
 
-        const customerUrl =`http://localhost:3002/customers/${customerId}`;
-        
+        const customerUrl = `http://localhost:3002/customers/${customerId}`;
+        let orderCustomerDetails;
 
-        try{
+
+        try {
             const cust_response = await firstValueFrom(
                 this.httpService.get(customerUrl)
-            ); 
+            );
 
             console.log(cust_response.data);
-        }catch(error){
+            orderCustomerDetails = cust_response.data;
+        } catch (error) {
             throw new NotFoundException("couldn't find a valid customer for given id");
         }
 
@@ -41,46 +43,62 @@ export class OrdersService {
             status: 'PENDING',
         });
 
-        for (const item of items){
-                try{
-                    const validProductUrl= `http://localhost:3001/products/${item.productId}/validate?quantity=${item.quantity}`;
-                    const product_valid_response = await firstValueFrom(
-                        this.httpService.get(validProductUrl)
-                    );
-                    console.log(product_valid_response.data);
-                }
-                catch(error){
-                    throw new NotFoundException(`product id: ${item.productId} is out of stock`);
-                }
+        for (const item of items) {
+            try {
+                const validProductUrl = `http://localhost:3001/products/${item.productId}/validate?quantity=${item.quantity}`;
+                const product_valid_response = await firstValueFrom(
+                    this.httpService.get(validProductUrl)
+                );
+                console.log(product_valid_response.data);
+            }
+            catch (error) {
+                throw new NotFoundException(`product id: ${item.productId} is out of stock`);
+            }
         }
         const savedOrder = await this.orderRepository.save(order);
 
-        const orderItems = items.map((item) => 
-        this.orderItemRepository.create({
-            productId: item.productId,
-            price: item.price,
-            quantity:item.quantity,
-            order:savedOrder
-        }),
-    );
+        const orderItems = items.map((item) =>
+            this.orderItemRepository.create({
+                productId: item.productId,
+                price: item.price,
+                quantity: item.quantity,
+                order: savedOrder
+            }),
+        );
 
-    await this.orderItemRepository.save(orderItems);
-    const finalOrder = await this.orderRepository.findOne({
-        where : {id:savedOrder.id},
-        relations:['items']
-    })as Order;
+        await this.orderItemRepository.save(orderItems);
+        const finalOrder = await this.orderRepository.findOne({
+            where: { id: savedOrder.id },
+            relations: ['items']
+        }) as Order;
 
-    return finalOrder;
+        for (const item of orderItems) {
+            try {
+                const updateQuantityUrl = `http://localhost:3001/products/${item.productId}/quantity?quantity=${item.quantity}`;
+                await firstValueFrom(
+                    this.httpService.patch(updateQuantityUrl),
+                );
+            } catch (error) {
+                throw new BadRequestException("Error whileupdating the product quantity");
+            }
+        }
 
-     }
+        return {
+            customerdata: orderCustomerDetails,
+            order: finalOrder,
+            items: orderItems
 
-     async fetch(id: any) {
-        const order =  await this.orderRepository.findOne({
-            where : {id},
+        };
+
+    }
+
+    async fetch(id: any) {
+        const order = await this.orderRepository.findOne({
+            where: { id },
             relations: ['items'],
         });
 
-        if(!order){
+        if (!order) {
             throw new NotFoundException(`Order with ID ${id} not found`);
         }
 
@@ -89,25 +107,25 @@ export class OrdersService {
     }
 
     async fetchAll() {
-        return await this.orderRepository.find({relations:['items']});
-       // throw new Error('Method not implemented.');
+        return await this.orderRepository.find({ relations: ['items'] });
+        // throw new Error('Method not implemented.');
     }
 
     async updateOrderStatus(id: number, updateStatus: UpdateOrderStatus) {
         const order = await this.orderRepository.findOne({
-            where : {id},
+            where: { id },
             relations: ['items'],
         });
 
-        if(!order){
+        if (!order) {
             throw new NotFoundException(`Order with id: ${id} is not found`);
         }
-        if(
+        if (
             order.status === OrderStatus.DELIVERED ||
-            order.status === OrderStatus.CANCELLED){
-            
+            order.status === OrderStatus.CANCELLED) {
+
             throw new BadRequestException(`Order status cannot be changed, when it is delivered or cancelled`);
-        } 
+        }
         console.log('Current Order Status:', order.status);
         order.status = updateStatus.status;
         console.log('Updated Order Status:', order.status);
