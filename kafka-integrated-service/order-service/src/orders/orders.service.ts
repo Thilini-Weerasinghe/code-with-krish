@@ -172,8 +172,17 @@ export class OrdersService implements OnModuleInit {
     );
     const savedOrderItems = await this.orderItemRepository.save(orderItems);
 
-  
-      }
+    await this.producer.send({
+      topic:`thilini.order.confirmed`,
+      messages:[{
+        value:JSON.stringify({customerName,savedOrder,savedOrderItems})
+      }]
     })
+      }
+
+   
+    });
+
+
   }
 }
