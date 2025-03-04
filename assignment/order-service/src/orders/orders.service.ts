@@ -40,7 +40,7 @@ export class OrdersService implements OnModuleInit {
   }
 
   async create(createOrderDto: createOrderDto): Promise<any> {
-    const { customerId, items } = createOrderDto;
+    const { customerId, items,city } = createOrderDto;
     //--------customer
     // Validate customer exists
     let customerName = '';
@@ -71,7 +71,7 @@ export class OrdersService implements OnModuleInit {
     this.producer.send({
       topic:'wthilini.order.create',
       messages:[
-        {value:JSON.stringify({customerId,customerName,items})},
+        {value:JSON.stringify({customerId,customerName,items,city})},
       ],
 
     });
@@ -167,10 +167,11 @@ export class OrdersService implements OnModuleInit {
     await this.consumer.run({
       eachMessage: async ({message} )=> {
 
-        const {customerId,customerName,items}=JSON.parse(message.value.toString());
+        const {customerId,customerName,items,city}=JSON.parse(message.value.toString());
         console.log("order service: consumer side------------");
         const order = this.orderRepository.create({
           customerId,
+          city,
           status: OrderStatus.CONFIRMED,
         });
         const savedOrder = await this.orderRepository.save(order);
